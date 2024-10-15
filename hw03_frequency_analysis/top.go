@@ -6,7 +6,9 @@ import (
 	"strings"
 )
 
-var punctuationMarks = regexp.MustCompile(`[[:punct:]]`)
+var punctuationMark = regexp.MustCompile(`[[:punct:]]`)
+
+var punctuationMarks = regexp.MustCompile(`^[[:punct:]]{2,}$`)
 
 func Top10(wordSequence string) []string {
 	var result []string
@@ -17,9 +19,7 @@ func Top10(wordSequence string) []string {
 	wordMap := make(map[string]int)
 
 	for _, word := range wordArray {
-		sequenceRunes := []rune(word)
-
-		transformedWord := proceedCharacter(sequenceRunes)
+		transformedWord := convertWord(word)
 
 		if len(transformedWord) != 0 {
 			if _, ok := wordMap[transformedWord]; ok {
@@ -40,22 +40,6 @@ func Top10(wordSequence string) []string {
 	return result
 }
 
-func proceedCharacter(r []rune) string {
-	transformedWord := ""
-
-	for i := 0; i < len(r); i++ {
-		if punctuationMarks.MatchString(string(r[i])) {
-			if len(r) != 1 && !((i == 0 && r[i] != r[i+1]) || (i == len(r)-1 && r[i] != r[i-1])) {
-				transformedWord += string(r[i])
-			}
-		} else {
-			transformedWord += string(r[i])
-		}
-	}
-
-	return transformedWord
-}
-
 func customSort(result []string, wordMap map[string]int) []string {
 	sort.Slice(result, func(i int, j int) bool {
 		if wordMap[result[i]] > wordMap[result[j]] {
@@ -69,4 +53,14 @@ func customSort(result []string, wordMap map[string]int) []string {
 	})
 
 	return result
+}
+
+func convertWord(word string) string {
+	if punctuationMarks.MatchString(word) {
+		return word
+	}
+
+	return strings.TrimFunc(word, func(r rune) bool {
+		return punctuationMark.MatchString(string(r))
+	})
 }
